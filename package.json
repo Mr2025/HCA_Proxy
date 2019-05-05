@@ -1,6 +1,6 @@
 {
   "name": "hca-rest",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": " adds rest concepts to standard Hca installation",
   "main": "index.js",
   "scripts": {
