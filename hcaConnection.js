@@ -2,10 +2,9 @@ const hcaProto = require('./hcaProto')
 const chalk = require('chalk');
 const Queue = require('queue-fifo');
 
-const CLIENT_UPDATES = 0x00FF; //Don't support any clients
-const CLIENT_NAME = 'ClientSim';
-
-
+// const this.clientUpdates = 0x00FF; //Don't support any clients
+// const this.clientName = 'ClientSim';
+// const this.clientPassword = 'someTestPassword';
 
 //=========================================================================
 // HcaConnection - is designed to look like a HCA internal obeject (proxy)
@@ -14,9 +13,13 @@ const CLIENT_NAME = 'ClientSim';
 // https://www.homecontrolassistant.com/download/V15/Doc/a07_Object%20Model.pdf
 //=========================================================================
 class HcaConnection extends hcaProto {
-    constructor(webSocket, formater) {
-        super();
-        this.WebSocket = webSocket;
+    constructor(clientName, password,unsolicatedEvents, webSocket, formater) {
+        super(webSocket);
+        this.clientName =clientName;
+        this.password =  password; 
+        this.unsolicatedEvents = unsolicatedEvents;
+
+        //this.WebSocket = webSocket;
         this.Formater = formater;
         this.on('submittPassword', this.setPassword.bind(this));
         this.on('setClientOptions', this.setClientOptions.bind(this));
@@ -139,14 +142,14 @@ class HcaConnection extends hcaProto {
 
     async setPassword(serverData) {
         console.log(chalk.yellow(`Server version:[${chalk.grey(serverData.serverVersion)}]  Requested Password - clientPos:[${chalk.grey(serverData.clientNum)}] Server:[${chalk.grey(serverData.serverVersion)}]`));
-        const password = 'someTestPassword';
+        const password = this.clientPassword;
         const response = this.sendMessage('HCAObject', 'SetPassword', '4', password); //4=Remote Access
         return await response;
     }
     async setClientOptions(stateChangeBitmap, recommededClientName) {
-        const myStateBitmap = stateChangeBitmap | CLIENT_UPDATES;
-        console.log(chalk.yellow(`Configure Client Name:[${chalk.grey(CLIENT_NAME)}] ListeningTo:[${chalk.grey(myStateBitmap)}]`));
-        const response = await this.sendMessage('HCAApp', 'SetClientOptions', myStateBitmap, CLIENT_NAME);
+        const myStateBitmap = stateChangeBitmap | this.clientUpdates;
+        console.log(chalk.yellow(`Configure Client Name:[${chalk.grey(this.clientName)}] ListeningTo:[${chalk.grey(myStateBitmap)}]`));
+        const response = await this.sendMessage('HCAApp', 'SetClientOptions', myStateBitmap, this.clientName);
         //console.dir(response);
         return response;
     }

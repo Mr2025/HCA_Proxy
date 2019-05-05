@@ -21,7 +21,7 @@ describe('Connect To Hca Server', function(){
         const expected = 'NewFlagValue';
         let actual = null;
 
-        const hcaProxy = new sut(WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000, WebSocket,Hca);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //ACT    
@@ -36,12 +36,12 @@ describe('Connect To Hca Server', function(){
             expect(actual).to.exist;
             actual.should.equal(expected);
         });
-        hcaProxy.openServer('172.16.5.108','2050',null);
+        hcaProxy.openServer('172.16.5.108','2050');
         
     });       
     it('Test Device - On and Off', async function(){
         //Arrange
-        const hcaProxy = new sut(WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //Act
@@ -62,7 +62,7 @@ describe('Connect To Hca Server', function(){
             startStatus.should.not.equal(AfterStatus);
             startStatus.should.equal(endStatus);
         });  
-        hcaProxy.openServer('172.16.5.108','2050',null);
+        hcaProxy.openServer('172.16.5.108','2050');
 
         //Assert
     });       
@@ -70,7 +70,7 @@ describe('Connect To Hca Server', function(){
 
     it('Test Enum - Devices on server', async function(){
         //Arrange
-        const hcaProxy = new sut(WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //Act
@@ -84,14 +84,14 @@ describe('Connect To Hca Server', function(){
             devices.length.should.be.gte(1);   
             //console.dir(devices);         
         });  
-        hcaProxy.openServer('172.16.5.108','2050',null);
+        hcaProxy.openServer('172.16.5.108','2050');
 
         //Assert
     });       
 
     it('Test Enum - Flags on server', async function(){
         //Arrange
-        const hcaProxy = new sut(WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //Act
@@ -105,7 +105,7 @@ describe('Connect To Hca Server', function(){
             flags.length.should.be.gte(1);   
             //console.dir(flags);         
         });  
-        hcaProxy.openServer('172.16.5.108','2050',null);
+        hcaProxy.openServer('172.16.5.108','2050');
 
         //Assert
     });       
@@ -113,7 +113,7 @@ describe('Connect To Hca Server', function(){
 
     it.skip('Test Short Error - Connection Response', async function(){
         //Arrange
-        const hcaProxy = new sut(WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             console.dir(svr);
 
@@ -145,7 +145,7 @@ describe('Connect To Hca Server', function(){
         
         
         //ACT
-        hcaProxy.openServer('172.16.5.108','2050',null);
+        hcaProxy.openServer('172.16.5.108','2050');
 
         //Assert
     });       

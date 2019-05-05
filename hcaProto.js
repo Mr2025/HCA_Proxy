@@ -1,3 +1,5 @@
+//Requirements ================================================================
+//const WebSocket = require('ws');
 const EventEmitter = require('events')
 
 const CLIENT_UPDATES = 0; //Don't support any clients
@@ -67,7 +69,7 @@ class HcaProxy extends EventEmitter{
     }
     
 
-    openServer(ip,port,hcaPassword){        
+    openServer(ip,port){        
         this.connection = new this.WebSocket(`ws://${ip}:${port}/websocket`, {perMessageDeflate: false,});                
         this.connection.on('open', async (sock) =>
         {            
@@ -77,7 +79,7 @@ class HcaProxy extends EventEmitter{
             //     console.log("Client Connect - Message sent");            
             // //}
 
-            const svrResp = await this.sendConnection(hcaPassword);            
+            const svrResp = await this.sendConnection();            
             this.emit('HcaConnected',svrResp);
         });
         this.connection.on('close', (code, reason) =>
