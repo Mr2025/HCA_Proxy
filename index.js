@@ -1,7 +1,7 @@
 //Requirements ================================================================
 const WebSocket = require('ws');
-const Hca = require('../hcaWireFormat');
-const Connection = require('../hcaConnection');
+const Hca = require('./hcaWireFormat');
+const Connection = require('./hcaConnection');
 
 
 module.exports = (clientName, password,unsolicatedEvents =  0x0000)=>{
