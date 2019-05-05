@@ -1,5 +1,5 @@
 {
-  "name": "hca-rest",
+  "name": "hca-proxy",
   "version": "0.2.0",
   "description": " adds rest concepts to standard Hca installation",
   "main": "index.js",
