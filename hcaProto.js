@@ -1,26 +1,68 @@
 //Requirements ================================================================
+const InvalidArgumentException = require('./InvalidArgumentException');
 //const WebSocket = require('ws');
 const EventEmitter = require('events')
 
 const CLIENT_UPDATES = 0; //Don't support any clients
 const CLIENT_NAME = 'ClientSim';
 
-
+//HcaProxy ====================================================================
+//proxyConfiguration ==========================================================
+//  webSocket - A dependancy injected class that will connect to the server 
+//                    following the node ws specification.
+//  submittPassword - a user function that will submitt a password message.  
+//                    The proxy will assume it is a async process and wait for 
+//                    a resolution.  This function will be submitted an object
+//                    with the following properties:  
+//                            server: the URL of the target server, as defined 
+//                                    in the websocket
+//                            clientNum: the number of this connection on the 
+//                                    Hca server.  This number will appear to
+//                                    the right of the connection, when viewing
+//                                    the Connected Client screen of the HCA
+//                                    server. 
+//                            serverVersion: the version number of the server
+//                                    In the format {Major.Minor.Revision}
+//  setClientOptions - a user function that will submitt a configuration message
+//                    to the HCA server. 
 
 class HcaProxy extends EventEmitter{
-    constructor(webSocket){
+    constructor(proxyConfiguration){
         super();
-        this.WebSocket = webSocket;    
+        
+        if (!proxyConfiguration){
+            throw new InvalidArgumentException ('proxyConfiguration', 'Missing Configuration');
+        }
+
+        if (!proxyConfiguration.hasOwnProperty('webSocket')){
+            throw new InvalidArgumentException ('webSocket', 'Missing injected webSocket');
+        }
+
+        this.WebSocket = proxyConfiguration.webSocket;    
         this.connection= null;     
-    
+        this.config = proxyConfiguration;
+
+        if (!proxyConfiguration.hasOwnProperty('submittPassword')){
+            proxyConfiguration.setPassword = (connection)=>{ throw new Error(`Server:[${connection.server}] required password, programmer did not defined subnittPassword() in the proxyConfiguraiton`)};
+        }
+
+        if (!proxyConfiguration.hasOwnProperty('setClientOptions')){
+            proxyConfiguration.setClientOptions = (connection)=>{};
+        }
+
+        
+
+        //SetPassword - should be Functions not events
+        //SetClient options - should be Functions not events
+          
     }
 
     sendAndWait(data){
        //console.log(`sendAndWait HcaProxy`);
         return new Promise((resolve,reject)=>{
             try{
-                this.connection.once('message', (data)=>{                    
-                    resolve(data);
+                this.connection.once('message', (recv)=>{                    
+                    resolve(recv);
                 })
                 this.connection.send(data);
             }catch(error){
@@ -59,17 +101,21 @@ class HcaProxy extends EventEmitter{
         //Step 4. Evaluate need for Password
         const reqPass = response[5]!=0;       
         if (reqPass){
-            await this.emit('submittPassword',serverConnection);
+            //await this.emit('submittPassword',serverConnection); //TODO: Move to function ivocation
+
+            //SubmittPassword - will wait for a response 
+            await this.config.submittPassword(serverConnection);            
+            //If function throws, it will kill the Send Connections
         }
 
-        await this.emit('setClientOptions',CLIENT_UPDATES, CLIENT_NAME)
-
+        //await this.emit('setClientOptions',CLIENT_UPDATES, CLIENT_NAME) //TODO: Move to function ivocation
+        await this.config.setClientOptions(CLIENT_UPDATES,CLIENT_NAME);
         console.log(`Return:[${rCd}] Client#:[${response[4]}] Pass?:[${reqPass}] Proto:[${response[6]}]`);
         return serverConnection;
     }
     
 
-    openServer(ip,port){        
+    openServer(ip,port){    //TODO: convert to promise syntax    
         this.connection = new this.WebSocket(`ws://${ip}:${port}/websocket`, {perMessageDeflate: false,});                
         this.connection.on('open', async (sock) =>
         {            

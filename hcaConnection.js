@@ -14,15 +14,30 @@ const Queue = require('queue-fifo');
 //=========================================================================
 class HcaConnection extends hcaProto {
     constructor(clientName, password,unsolicatedEvents, webSocket, formater) {
-        super(webSocket);
-        this.clientName =clientName;
-        this.password =  password; 
+        super({
+            webSocket:webSocket, 
+            setPassword: async (serverData)=>{
+                console.log(chalk.yellow(`Server version:[${chalk.grey(serverData.serverVersion)}]  Requested Password - clientPos:[${chalk.grey(serverData.clientNum)}] Server:[${chalk.grey(serverData.serverVersion)}]`));
+                //const password = this.clientPassword;
+                const response = await this.sendMessage('HCAObject', 'SetPassword', '4', password); //4=Remote Access
+                return response;
+            },
+            setClientOptions: async (stateChangeBitmap, recommededClientName)=>{
+                const myStateBitmap = stateChangeBitmap | this.clientUpdates;
+                console.log(chalk.yellow(`Configure Client Name:[${chalk.grey(clientName)}] ListeningTo:[${chalk.grey(myStateBitmap)}]`));
+                const response = await this.sendMessage('HCAApp', 'SetClientOptions', myStateBitmap, clientName);
+                //console.dir(response);
+                return response;
+            },
+        });
+        //this.clientName =clientName;
+        //this.password =  password; 
         this.unsolicatedEvents = unsolicatedEvents;
 
         //this.WebSocket = webSocket;
         this.Formater = formater;
-        this.on('submittPassword', this.setPassword.bind(this));
-        this.on('setClientOptions', this.setClientOptions.bind(this));
+        // this.on('submittPassword', this.setPassword.bind(this));
+        // this.on('setClientOptions', this.setClientOptions.bind(this));
         this.on('msg', this.handleMessage.bind(this));
 
         //MessageArray and Queue
@@ -140,21 +155,15 @@ class HcaConnection extends hcaProto {
         }
     }
 
-    async setPassword(serverData) {
-        console.log(chalk.yellow(`Server version:[${chalk.grey(serverData.serverVersion)}]  Requested Password - clientPos:[${chalk.grey(serverData.clientNum)}] Server:[${chalk.grey(serverData.serverVersion)}]`));
-        const password = this.clientPassword;
-        const response = this.sendMessage('HCAObject', 'SetPassword', '4', password); //4=Remote Access
-        return await response;
-    }
-    async setClientOptions(stateChangeBitmap, recommededClientName) {
-        const myStateBitmap = stateChangeBitmap | this.clientUpdates;
-        console.log(chalk.yellow(`Configure Client Name:[${chalk.grey(this.clientName)}] ListeningTo:[${chalk.grey(myStateBitmap)}]`));
-        const response = await this.sendMessage('HCAApp', 'SetClientOptions', myStateBitmap, this.clientName);
-        //console.dir(response);
-        return response;
-    }
+    
 
 
+    //=========================================================================
+    // processResultCode - will convert the result code into an error    
+    //=========================================================================    
+    // https://www.homecontrolassistant.com/download/V15/Doc/a07_Object%20Model.pdf
+    // Page 2: Error Handling
+    //=========================================================================
     processResultCode(code) {
         switch (code) {
             case -1:
@@ -179,9 +188,6 @@ class HcaConnection extends hcaProto {
                 break;
         }
     }
-
-
-
     //=========================================================================
     // getDeviceStateOnServer - will retrive the status of the device on the 
     //                          server.
@@ -224,8 +230,6 @@ class HcaConnection extends hcaProto {
         const response = await this.sendMessage('HCAObject', 'Device.Off', deviceName);
         return response[3] == 0; //Is it on?
     }
-
-
 
     //=========================================================================
     // flagGet - will look up the flag's type, and will retrive that flag 
