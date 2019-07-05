@@ -6,14 +6,19 @@ const Queue = require('queue-fifo');
 // const this.clientName = 'ClientSim';
 // const this.clientPassword = 'someTestPassword';
 
-//=========================================================================
+//Dependancies ================================================================
+const WebSocket = require('ws');
+const Hca = require('./hcaWireFormat');
+
+
+//=============================================================================
 // HcaConnection - is designed to look like a HCA internal obeject (proxy)
-//=========================================================================
+//=============================================================================
 // This object has been published here: 
 // https://www.homecontrolassistant.com/download/V15/Doc/a07_Object%20Model.pdf
-//=========================================================================
+//=============================================================================
 class HcaConnection extends hcaProto {
-    constructor(clientName, password,unsolicatedEvents, webSocket, formater) {
+    constructor(clientName, password, unsolicatedEvents, webSocket = WebSocket, formater = Hca) {
         super({
             webSocket:webSocket, 
             setPassword: async (serverData)=>{
@@ -24,20 +29,18 @@ class HcaConnection extends hcaProto {
             },
             setClientOptions: async (stateChangeBitmap, recommededClientName)=>{
                 const myStateBitmap = stateChangeBitmap | this.clientUpdates;
-                console.log(chalk.yellow(`Configure Client Name:[${chalk.grey(clientName)}] ListeningTo:[${chalk.grey(myStateBitmap)}]`));
+                console.log(chalk.yellow(`Configure Client Name:[${chalk.grey(clientName)}] ListeningToMsgPattern:[${chalk.grey(myStateBitmap)}]`));
                 const response = await this.sendMessage('HCAApp', 'SetClientOptions', myStateBitmap, clientName);
                 //console.dir(response);
                 return response;
             },
         });
-        //this.clientName =clientName;
-        //this.password =  password; 
+        
         this.unsolicatedEvents = unsolicatedEvents;
 
-        //this.WebSocket = webSocket;
         this.Formater = formater;
-        // this.on('submittPassword', this.setPassword.bind(this));
-        // this.on('setClientOptions', this.setClientOptions.bind(this));
+
+        //Listen for message events
         this.on('msg', this.handleMessage.bind(this));
 
         //MessageArray and Queue

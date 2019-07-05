@@ -6,7 +6,9 @@ const EventEmitter = require('events')
 const CLIENT_UPDATES = 0; //Don't support any clients
 const CLIENT_NAME = 'ClientSim';
 
-//HcaProxy ====================================================================
+//HcaProto ====================================================================
+//  HcaProto - will perform the protocol for HCA -> primarily focusing on the 
+//             handshake between this applicaiton and the server.
 //proxyConfiguration ==========================================================
 //  webSocket - A dependancy injected class that will connect to the server 
 //                    following the node ws specification.
@@ -26,7 +28,7 @@ const CLIENT_NAME = 'ClientSim';
 //  setClientOptions - a user function that will submitt a configuration message
 //                    to the HCA server. 
 
-class HcaProxy extends EventEmitter{
+class HcaProto extends EventEmitter{
     constructor(proxyConfiguration){
         super();
         
@@ -43,18 +45,12 @@ class HcaProxy extends EventEmitter{
         this.config = proxyConfiguration;
 
         if (!proxyConfiguration.hasOwnProperty('submittPassword')){
-            proxyConfiguration.setPassword = (connection)=>{ throw new Error(`Server:[${connection.server}] required password, programmer did not defined subnittPassword() in the proxyConfiguraiton`)};
+            proxyConfiguration.setPassword = (connection)=>{ throw new Error(`Server:[${connection.server}] requires password, programmer did not defined submittPassword() in the proxyConfiguraiton`)};
         }
 
         if (!proxyConfiguration.hasOwnProperty('setClientOptions')){
             proxyConfiguration.setClientOptions = (connection)=>{};
-        }
-
-        
-
-        //SetPassword - should be Functions not events
-        //SetClient options - should be Functions not events
-          
+        }          
     }
 
     sendAndWait(data){
@@ -116,38 +112,39 @@ class HcaProxy extends EventEmitter{
     
 
     openServer(ip,port){    //TODO: convert to promise syntax    
-        this.connection = new this.WebSocket(`ws://${ip}:${port}/websocket`, {perMessageDeflate: false,});                
-        this.connection.on('open', async (sock) =>
-        {            
-            // console.log(`open Event - sockDefined:[${!!sock}]`);
-            // // Web Socket is connected, send data using send()                
-            //     this.connection.send("HCA000B015001039");                
-            //     console.log("Client Connect - Message sent");            
-            // //}
+       // return new Promise((resolve,reject)=>{
+            this.connection = new this.WebSocket(`ws://${ip}:${port}/websocket`, {perMessageDeflate: false,});                
+            this.connection.on('open', async (sock) =>
+            {            
+                // console.log(`open Event - sockDefined:[${!!sock}]`);
+                // // Web Socket is connected, send data using send()                
+                //     this.connection.send("HCA000B015001039");                
+                //     console.log("Client Connect - Message sent");            
+                // //}
 
-            const svrResp = await this.sendConnection();            
-            this.emit('HcaConnected',svrResp);
-        });
-        this.connection.on('close', (code, reason) =>
-        {
-            console.log(`close Event code:[${code}] reason:[${reason}]`);
-        });
-        this.connection.on('message', (data) => {
-            this.emit('msg', data);
-        });
-        
-        this.connection.on('error', (error) =>
-        {
-            console.log(`error Event [${error}]`);
-        });
+                const svrResp = await this.sendConnection();            
+                this.emit('HcaConnected',svrResp);
+            });
+            this.connection.on('close', (code, reason) =>
+            {
+                console.log(`close Event code:[${code}] reason:[${reason}]`);
+            });
+            this.connection.on('message', (data) => {
+                this.emit('msg', data);
+            });
+            
+            this.connection.on('error', (error) =>
+            {
+                console.log(`error Event [${error}]`);
+            });
 
-        // on(event: 'close', listener: (this: WebSocket, code: number, reason: string) => void): this;
-        // on(event: 'error', listener: (this: WebSocket, err: Error) => void): this;
-        // on(event: 'upgrade', listener: (this: WebSocket, request: http.IncomingMessage) => void): this;
-        // on(event: 'message', listener: (this: WebSocket, data: WebSocket.Data) => void): this;
-        // on(event: 'open' , listener: (this: WebSocket) => void): this;
-        // on(event: 'ping' | 'pong', listener: (this: WebSocket, data: Buffer) => void): this;
-
+            // on(event: 'close', listener: (this: WebSocket, code: number, reason: string) => void): this;
+            // on(event: 'error', listener: (this: WebSocket, err: Error) => void): this;
+            // on(event: 'upgrade', listener: (this: WebSocket, request: http.IncomingMessage) => void): this;
+            // on(event: 'message', listener: (this: WebSocket, data: WebSocket.Data) => void): this;
+            // on(event: 'open' , listener: (this: WebSocket) => void): this;
+            // on(event: 'ping' | 'pong', listener: (this: WebSocket, data: Buffer) => void): this;
+        //});
     }
 
     closeServer(){
@@ -158,4 +155,4 @@ class HcaProxy extends EventEmitter{
 
 }
 
-module.exports = HcaProxy;
+module.exports = HcaProto;

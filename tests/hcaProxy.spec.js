@@ -6,8 +6,8 @@ chai.should(); //install should operators.
 const expect = chai.expect;
 
 //Requirements ================================================================
-const WebSocket = require('ws');
-const Hca = require('../hcaWireFormat');
+// const WebSocket = require('ws');
+// const Hca = require('../hcaWireFormat');
 
 //=============================================================================
 //Subject under test
@@ -21,7 +21,7 @@ describe('Connect To Hca Server', function(){
         const expected = 'NewFlagValue';
         let actual = null;
 
-        const hcaProxy = new sut('TestClient',null,0x0000, WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //ACT    
@@ -41,7 +41,7 @@ describe('Connect To Hca Server', function(){
     });       
     it('Test Device - On and Off', async function(){
         //Arrange
-        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //Act
@@ -70,7 +70,7 @@ describe('Connect To Hca Server', function(){
 
     it('Test Enum - Devices on server', async function(){
         //Arrange
-        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //Act
@@ -91,7 +91,7 @@ describe('Connect To Hca Server', function(){
 
     it('Test Enum - Flags on server', async function(){
         //Arrange
-        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             
             //Act
@@ -113,7 +113,7 @@ describe('Connect To Hca Server', function(){
 
     it.skip('Test Short Error - Connection Response', async function(){
         //Arrange
-        const hcaProxy = new sut('TestClient',null,0x0000,WebSocket,Hca);        
+        const hcaProxy = new sut('TestClient',null,0x0000);        
         hcaProxy.on('HcaConnected',async (svr)=>{
             console.dir(svr);
 
